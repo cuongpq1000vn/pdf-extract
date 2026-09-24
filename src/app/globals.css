@@ -1,49 +1,183 @@
+@import "tailwindcss";
+@import "@fontsource-variable/ibm-plex-sans";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+/*
+ * Theme layer, same token system as b2b-admin-dashboard: every colour resolves
+ * through a token and only the tokens change between light and dark, so no
+ * component carries a `dark:` variant.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  --bg: #f2f4f7;
+  --surface: #ffffff;
+  --surface-subtle: #f8fafc;
+  --surface-hover: #f1f5f9;
+
+  --border: #e2e7ee;
+  --border-subtle: #eef1f6;
+  --border-strong: #c8d1dd;
+
+  --text: #131922;
+  --text-muted: #5c6878;
+  --text-subtle: #93a0b0;
+
+  --primary: #2457d6;
+  --primary-hover: #1c46b4;
+  --danger: #c8362f;
+  --success: #0f8a4d;
+  --warning: #b5730a;
+  --info: #0e7490;
+  --on-accent: #ffffff;
+  --primary-wash: #eaf0fd;
+
+  --badge-neutral-bg: #eceff4;
+  --badge-success-bg: #e6f5ec;
+  --badge-warning-bg: #fdf3e3;
+  --badge-danger-bg: #fdecea;
+  --badge-info-bg: #e3f2f6;
+
+  --danger-border: #f2c9c6;
+  --danger-subtle: #fffaf9;
+  /* Refusals are not errors: they are correct results that need a person. */
+  --warning-border: #f0d7a8;
+  --warning-subtle: #fffbf3;
+
+  --shadow-card: 0 4px 16px rgb(19 25 34 / 8%), 0 1px 3px rgb(19 25 34 / 6%);
+  --ring: rgb(36 87 214 / 30%);
+
+  --radius: 7px;
+  --radius-sm: 4px;
+  --radius-lg: 11px;
+
+  --font: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
     color-scheme: dark;
+
+    --bg: #0d1116;
+    --surface: #151a21;
+    --surface-subtle: #1a212a;
+    --surface-hover: #1f2731;
+
+    --border: #262e39;
+    --border-subtle: #1f262f;
+    --border-strong: #3a4553;
+
+    --text: #e6eaf0;
+    --text-muted: #97a3b4;
+    --text-subtle: #67748a;
+
+    --primary: #6d97ff;
+    --primary-hover: #8cadff;
+    --danger: #f4706a;
+    --success: #43c67d;
+    --warning: #e0a03f;
+    --info: #4cb8d0;
+    --on-accent: #0d1116;
+    --primary-wash: #16233c;
+
+    --badge-neutral-bg: #242c37;
+    --badge-success-bg: #10301f;
+    --badge-warning-bg: #33260f;
+    --badge-danger-bg: #361a19;
+    --badge-info-bg: #0f2b34;
+
+    --danger-border: #572724;
+    --danger-subtle: #231615;
+    --warning-border: #5a4418;
+    --warning-subtle: #211a0d;
+
+    --shadow-card: 0 4px 16px rgb(0 0 0 / 45%), 0 1px 3px rgb(0 0 0 / 35%);
+    --ring: rgb(109 151 255 / 40%);
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0d1116;
+  --surface: #151a21;
+  --surface-subtle: #1a212a;
+  --surface-hover: #1f2731;
+
+  --border: #262e39;
+  --border-subtle: #1f262f;
+  --border-strong: #3a4553;
+
+  --text: #e6eaf0;
+  --text-muted: #97a3b4;
+  --text-subtle: #67748a;
+
+  --primary: #6d97ff;
+  --primary-hover: #8cadff;
+  --danger: #f4706a;
+  --success: #43c67d;
+  --warning: #e0a03f;
+  --info: #4cb8d0;
+  --on-accent: #0d1116;
+  --primary-wash: #16233c;
+
+  --badge-neutral-bg: #242c37;
+  --badge-success-bg: #10301f;
+  --badge-warning-bg: #33260f;
+  --badge-danger-bg: #361a19;
+  --badge-info-bg: #0f2b34;
+
+  --danger-border: #572724;
+  --danger-subtle: #231615;
+  --warning-border: #5a4418;
+  --warning-subtle: #211a0d;
+
+  --shadow-card: 0 4px 16px rgb(0 0 0 / 45%), 0 1px 3px rgb(0 0 0 / 35%);
+  --ring: rgb(109 151 255 / 40%);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-hover: var(--surface-hover);
+  --color-border-app: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-subtle: var(--text-subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-wash: var(--primary-wash);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-on-accent: var(--on-accent);
+  --radius-app: var(--radius);
+  --radius-app-sm: var(--radius-sm);
+  --radius-app-lg: var(--radius-lg);
+  --font-sans: var(--font);
+  --font-mono: var(--font-mono);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }

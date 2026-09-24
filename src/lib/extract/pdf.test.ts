@@ -57,8 +57,11 @@ describe("readPdfPages", () => {
     expect(await openError(err)).toMatchObject({ code: "CORRUPT_PDF", title: "This PDF looks damaged" });
   });
 
-  it("passes on any other reader error, including non-Error values", async () => {
-    expect((await openError(new Error("odd"))).message).toContain("odd");
-    expect((await openError("weird")).message).toContain("weird");
+  it("does not blame the file for other reader errors", async () => {
+    const setup = new Error('Setting up fake worker failed: "Cannot find module pdf.worker.mjs"');
+    fake.open = () => Promise.reject(setup);
+    await expect(readPdfPages(new Uint8Array())).rejects.toBe(setup);
+    fake.open = () => Promise.reject("weird");
+    await expect(readPdfPages(new Uint8Array())).rejects.toBe("weird");
   });
 });

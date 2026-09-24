@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MAX_FILE_BYTES } from "../../../config";
 import { cn } from "../../../lib/utils";
 
 export interface UploadBoxProps {
@@ -48,7 +49,7 @@ export const UploadBox = ({ onFile, disabled }: UploadBoxProps) => {
       />
       <span className="rounded-(--radius) bg-primary px-3.5 py-2 font-medium text-on-accent">Choose a PDF</span>
       <span className="text-sm text-muted">
-        or drop it here. Invoices, packing lists and delivery dockets, up to 10 MB.
+        or drop it here. Invoices, packing lists and delivery dockets, up to {MAX_FILE_BYTES / 1024 / 1024} MB.
       </span>
     </label>
   );

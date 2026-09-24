@@ -27,7 +27,9 @@ export async function readPdfPages(bytes: Uint8Array): Promise<PageInput[]> {
     doc = await task.promise;
   } catch (err) {
     await task.destroy();
-    throw new PdfFileError(openError(err));
+    const info = fileProblem(err);
+    // Anything else is our fault (setup, bug), not the file's: let it surface as INTERNAL_ERROR.
+    throw info ? new PdfFileError(info) : err;
   }
 
   const pages: PageInput[] = [];
@@ -77,9 +79,9 @@ export function groupLines(cells: (Cell & { y: number })[]): TextLine[] {
   });
 }
 
-function openError(err: unknown): FileError {
+/** A reason that is about the uploaded file itself, or null if the failure isn't the file's fault. */
+function fileProblem(err: unknown): FileError | null {
   const name = err instanceof Error ? err.name : "";
-  const message = err instanceof Error ? err.message : String(err);
   if (name === "PasswordException")
     return {
       code: "PASSWORD_PROTECTED",
@@ -90,11 +92,7 @@ function openError(err: unknown): FileError {
     return {
       code: "CORRUPT_PDF",
       title: "This PDF looks damaged",
-      message: `The file could not be opened as a PDF. It may be damaged or only partly downloaded. Technical detail: ${message}`,
+      message: `The file could not be opened as a PDF. It may be damaged or only partly downloaded. Technical detail: ${(err as Error).message}`,
     };
-  return {
-    code: "CORRUPT_PDF",
-    title: "This PDF could not be opened",
-    message: `The PDF reader failed to open the file. Technical detail: ${message}`,
-  };
+  return null;
 }

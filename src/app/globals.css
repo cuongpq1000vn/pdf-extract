@@ -4,9 +4,8 @@
 @import "@fontsource/ibm-plex-mono/500.css";
 
 /*
- * Theme layer, same token system as b2b-admin-dashboard: every colour resolves
- * through a token and only the tokens change between light and dark, so no
- * component carries a `dark:` variant.
+ * Theme layer: every colour resolves through a token, and only the tokens
+ * change between light and dark, so no component carries a `dark:` variant.
  */
 
 :root {

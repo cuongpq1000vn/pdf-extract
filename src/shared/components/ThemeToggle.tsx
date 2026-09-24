@@ -27,9 +27,9 @@ const option = cva(
 );
 
 /**
- * Three-way theme control, same as b2b-admin-dashboard. Three states rather
- * than a switch because "follow the OS" is a real preference. A radiogroup, so
- * the current state is readable without colour.
+ * Three-way theme control: three states rather than a switch because "follow
+ * the OS" is a real preference. A radiogroup, so the current state is readable
+ * without colour.
  */
 export const ThemeToggle = () => {
   const { choice, setChoice } = useTheme();

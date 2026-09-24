@@ -117,10 +117,19 @@ describe("totals", () => {
     expect(r.refusals.find((x) => x.code === "TOTAL_MISMATCH")?.detail).toContain("-$2.00");
   });
 
-  it("does not accept a malformed total amount", () => {
+  it("refuses a malformed total amount, and doesn't also call it missing", () => {
     const r = one([HEADER, row("1", "Board", "2", "ea", "$5.00", "$10.00"), [[337, "Total: $1,0.00"]]]);
     expect(r.totals).toHaveLength(0);
-    expect(codes(r)).toContain("TOTAL_NOT_STATED");
+    expect(codes(r)).toEqual(["VALUE_UNREADABLE"]);
+  });
+
+  it("refuses a negative total instead of dropping its minus sign", () => {
+    for (const printed of ["-$10.00", "($10.00)", "\u2212$10.00"]) {
+      const r = one([HEADER, row("1", "Board", "2", "ea", "$5.00", "$10.00"), [[337, "Total:"], [502, printed]]]);
+      expect(r.totals).toHaveLength(0);
+      expect(r.refusals[0]).toMatchObject({ code: "VALUE_UNREADABLE", title: "The total couldn't be read" });
+      expect(r.refusals[0].evidence[0].text).toBe(printed);
+    }
   });
 });
 

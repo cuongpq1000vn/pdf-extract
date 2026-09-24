@@ -54,6 +54,8 @@ type PageResult = {
   refusals: Refusal[];
   notes: Source[];
   meta: { documentNo: Field<string> | null; date: Field<string> | null };
+  /** A total line had an amount we refused to read (so the total isn't "not printed"). */
+  totalUnreadable: boolean;
   status: PageStatus["status"];
 };
 
@@ -65,6 +67,7 @@ export function parseDocument(fileName: string, pages: PageInput[]): ExtractionR
   const pageStatuses: PageStatus[] = [];
   const docNos: Field<string>[] = [];
   const dates: Field<string>[] = [];
+  let totalUnreadable = false;
   for (const input of pages) {
     let result: PageResult;
     try {
@@ -87,11 +90,12 @@ export function parseDocument(fileName: string, pages: PageInput[]): ExtractionR
     notes.push(...result.notes);
     if (result.meta.documentNo) docNos.push(result.meta.documentNo);
     if (result.meta.date) dates.push(result.meta.date);
+    totalUnreadable ||= result.totalUnreadable;
     pageStatuses.push({ page: input.page, status: result.status, lineItemCount: result.items.length });
   }
 
   const readablePages = pageStatuses.some((p) => p.status === "read");
-  if (readablePages && totals.length === 0) {
+  if (readablePages && totals.length === 0 && !totalUnreadable) {
     refusals.push({
       code: "TOTAL_NOT_STATED",
       page: null,
@@ -163,6 +167,7 @@ function parseTextPage(page: number, lines: TextLine[]): PageResult {
   const totals: StatedTotal[] = [];
   const notes: Source[] = [];
   const meta: PageResult["meta"] = { documentNo: null, date: null };
+  let totalUnreadable = false;
   const src = (line: TextLine, text: string): Source => ({ page, text, line: line.text });
 
   const headerIndex = lines.findIndex(isHeaderLine);
@@ -185,6 +190,7 @@ function parseTextPage(page: number, lines: TextLine[]): PageResult {
       totals,
       notes,
       meta,
+      totalUnreadable,
       status: "refused",
       refusals: [
         {
@@ -220,8 +226,17 @@ function parseTextPage(page: number, lines: TextLine[]): PageResult {
     if (itemNo === null) {
       if (/^total\b/i.test(line.text.trim())) {
         const total = readTotal(page, line);
-        if (total) totals.push({ page, amount: total, check: { status: "unchecked", reason: "" } });
-        else
+        if (total?.kind === "read") totals.push({ page, amount: total.field, check: { status: "unchecked", reason: "" } });
+        else if (total?.kind === "unreadable") {
+          totalUnreadable = true;
+          refusals.push({
+            code: "VALUE_UNREADABLE",
+            page,
+            title: "The total couldn't be read",
+            detail: `The total reads "${total.source.text}". We only accept a plain dollar amount such as $1,234.56 (no minus sign or brackets), so no total was taken from this line.`,
+            evidence: [total.source],
+          });
+        } else
           refusals.push({
             code: "TOTAL_NOT_STATED",
             page,
@@ -287,7 +302,7 @@ function parseTextPage(page: number, lines: TextLine[]): PageResult {
     });
   }
 
-  return { items, totals, refusals, notes, meta, status: "read" };
+  return { items, totals, refusals, notes, meta, totalUnreadable, status: "read" };
 }
 
 function readRow(
@@ -427,12 +442,23 @@ function checkTotal(total: StatedTotal, items: LineItem[], rowsRefused: number):
   };
 }
 
-function readTotal(page: number, line: TextLine): Field<number> | null {
+/**
+ * The amount on a "Total" line. An amount we can't take exactly as printed
+ * (malformed, or signed like "-$153.90" or "($153.90)") is "unreadable": reading
+ * just the "$153.90" part would silently drop the sign.
+ */
+function readTotal(
+  page: number,
+  line: TextLine,
+): { kind: "read"; field: Field<number> } | { kind: "unreadable"; source: Source } | null {
   for (const cell of line.cells) {
-    const m = /\$[\d,]+\.\d{2}/.exec(cell.str);
+    const m = /\$[\d,.]+/.exec(cell.str);
     if (!m) continue;
+    const source = { page, text: cell.str, line: line.text };
+    const signed = /[-−(]\s*$/.test(cell.str.slice(0, m.index));
     const parsed = parseMoney(m[0]);
-    if (parsed) return { value: centsToNumber(parsed.cents), source: { page, text: cell.str, line: line.text } };
+    if (signed || !parsed) return { kind: "unreadable", source };
+    return { kind: "read", field: { value: centsToNumber(parsed.cents), source } };
   }
   return null;
 }
@@ -567,6 +593,7 @@ function emptyResult(status: PageStatus["status"], refusals: Refusal[]): PageRes
     refusals,
     notes: [],
     meta: { documentNo: null, date: null },
+    totalUnreadable: false,
     status,
   };
 }

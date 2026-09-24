@@ -154,6 +154,8 @@ describe("every number is traceable", () => {
       for (const f of fields) {
         expect(f.source.page).toBeGreaterThan(0);
         const money = /\$[\d,]+\.\d{2}/.exec(f.source.text);
+        // A sign in front of the amount would make the value wrong, not just differently formatted.
+        if (money) expect(f.source.text.slice(0, money.index), `${name}: signed amount`).not.toMatch(/[-\u2212(]\s*$/);
         const readBack = money ? parseMoney(money[0])!.cents / 100 : Number(f.source.text);
         expect(readBack, `${name} p${f.source.page} "${f.source.text}"`).toBe(f.value);
       }

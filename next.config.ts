@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // pdfjs-dist loads its own worker module at runtime; bundling it breaks that.
+  serverExternalPackages: ["pdfjs-dist"],
 };
 
 export default nextConfig;

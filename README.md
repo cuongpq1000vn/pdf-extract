@@ -52,23 +52,46 @@ src/
 
 ## Hardest decision
 
-<!-- TODO: in your own words. Candidate: refusing scanned pages instead of OCR —
-OCR text isn't "exact source text", so it would have needed its own
-confidence/verification layer; refusing is correct and cheap. -->
+**Refusing scanned pages instead of running OCR on them.**
+
+KBS-10241 is a clean invoice, and page 4 of KBS-DR118 is an ordinary site
+docket. Both are images with no text layer. OCR would probably have read them
+correctly, and refusing means the tool returns nothing for 10241 and loses a
+whole site from DR118. That felt like the wrong answer at first.
+
+What decided it was the hard rule: every number must point to a page and the
+exact source text it came from. With OCR, the "source text" is the OCR
+engine's guess at the text, not text that is in the document. If it misread
+`$1,104.00` as `$1,164.00`, the output would still look fully traced (page 1,
+source text `$1,164.00`) while being wrong. A misread would turn an honest
+"we can't read this" into a confident wrong number that looks sourced, and
+the brief is explicit that this is worse than a refusal.
+
+So a scanned page is refused, and the refusal names the exact page so a
+person knows what to check by hand. OCR is the first thing I'd add (see
+below), but only with its results kept visibly separate from text-layer
+values.
+
+A related call was the DR118 Summary / Returns / Credit / Signed Acceptance
+pages. I extract their lines, because the numbers are clearly readable and
+sourced, but I refuse to decide what they *mean* (add, subtract, or ignore)
+and flag every one of those lines. Treating returns as deliveries, or
+guessing they are negative, would be picking an answer quietly.
 
 ## Where I'm not confident
 
-<!-- TODO: confirm/edit. Known weak spots: -->
-- Table detection needs a header row with "Description" and "Qty". A different supplier layout gets `NO_TABLE_FOUND`, which is safe but useless.
-- Column assignment assumes cells start at or right of their header's x. Right-aligned numbers wider than the header would be misassigned.
-- A document total is checked only against lines on the same page. A multi-page invoice with a total on the last page would show as "not checked" or a false mismatch.
-- The count-conflict check (pallets) is a regex over free-text notes. It will miss conflicts phrased differently and could flag unrelated numbers that share a noun.
-- The section check (returns/credit/…) is keyword-based on the page heading.
-- No plausibility checks: 1200 roofing screws weighing "480g total" is suspicious but not flagged (the weight column is refused anyway).
+- **The heuristics are tuned to one supplier's layout.** All six samples come from the same template, and I wrote the parser after reading them. 100% test coverage means every branch runs, not that the approach works on a second supplier's layout.
+- **Table detection** needs a header row containing "Description" and "Qty". Any other layout gets `NO_TABLE_FOUND`. That is safe but not useful.
+- **Column assignment** puts each cell under the right-most header that starts at or before it. That works here because values are left-aligned under their headers. Right-aligned amounts wider than their heading would land in the wrong column.
+- **Totals are checked per page.** A multi-page invoice with one grand total on the last page would get a false `TOTAL_MISMATCH`, because the total is compared only with that page's lines.
+- **The pallet-count conflict** is found by a fairly blunt regex over free-text notes (a number followed by a noun). I wrote it after seeing KBS-10262. It will miss contradictions phrased differently, and could flag two unrelated numbers that share a noun.
+- **Section meaning** (returns, credit, summary, acceptance) is a keyword match on the page heading.
+- **No plausibility checks.** 1,200 roofing screws weighing "480g total" is suspicious, but nothing flags it. It only stays out of the output because the whole weight column is refused.
 
 ## With three more days
 
-<!-- TODO -->
-- OCR for scanned pages, with results marked unverified and kept apart from text-layer values.
-- Multi-page totals, and handling of tables that continue across pages.
-- More layouts: learn columns from data alignment rather than only from header names.
+1. **OCR for scanned pages, with verification.** Show each OCR value next to a crop of the page image, and keep it out of the trusted results until a person confirms it.
+2. **More real documents.** Collect layouts from other suppliers as test fixtures, and find columns from how values line up, not only from header names.
+3. **Checks across pages.** Handle grand totals and tables that continue over several pages. For delivery runs, use "Site 1 of 4" to report a missing site, and compare a summary page against the site pages.
+4. **Plausibility checks** that raise a flag (never change a value), such as weight per unit or price far outside the usual range for that item.
+5. **Deploy it** (Vercel), and log each refusal code so we can see which documents fail most often.

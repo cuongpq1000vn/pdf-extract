@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: { alias: { "@": path.resolve(path.dirname(fileURLToPath(import.meta.url)), "src") } },
   test: {
+    setupFiles: ["src/test/setup.ts"],
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],

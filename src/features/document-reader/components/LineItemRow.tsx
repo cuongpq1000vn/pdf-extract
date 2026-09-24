@@ -1,3 +1,4 @@
+import { SourcePopover } from "../../../shared";
 import type { LineItem } from "../types";
 import { FlagNote } from "./FlagNote";
 import { MoneyCell } from "./MoneyCell";
@@ -18,11 +19,13 @@ export const LineItemRow = ({ item }: LineItemRowProps) => (
         <FlagNote key={flag.code} flag={flag} />
       ))}
     </td>
-    <td className="px-2 py-2 text-right" title={`Page ${item.page}: "${item.quantity.source.text}"`}>
-      {item.quantity.value}
+    <td className="px-2 py-2 text-right">
+      <SourcePopover source={item.quantity.source} label="Quantity">
+        {item.quantity.value}
+      </SourcePopover>
     </td>
     <td className="px-2 py-2">{item.unit?.value ?? <span className="text-muted italic">none</span>}</td>
-    <MoneyCell field={item.unitPrice} />
-    <MoneyCell field={item.lineTotal} />
+    <MoneyCell field={item.unitPrice} label="Unit price" />
+    <MoneyCell field={item.lineTotal} label="Line total" />
   </tr>
 );

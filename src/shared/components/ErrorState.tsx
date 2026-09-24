@@ -1,3 +1,5 @@
+import { CircleAlert } from "lucide-react";
+
 export interface ErrorStateProps {
   /** Required on purpose: there is no generic "Something went wrong" fallback. */
   title: string;
@@ -7,7 +9,10 @@ export interface ErrorStateProps {
 
 export const ErrorState = ({ title, message, code }: ErrorStateProps) => (
   <div role="alert" className="rounded-(--radius) border border-(--danger-border) bg-(--danger-subtle) px-6 py-5">
-    <p className="m-0 font-semibold text-danger">{title}</p>
+    <p className="m-0 flex items-center gap-2 font-semibold text-danger">
+      <CircleAlert size={16} aria-hidden="true" />
+      {title}
+    </p>
     <p className="mt-1.5 mb-0 text-sm text-text">{message}</p>
     {code !== undefined ? <p className="mt-1.5 mb-0 font-mono text-xs text-muted">Error code: {code}</p> : null}
   </div>

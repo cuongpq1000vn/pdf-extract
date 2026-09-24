@@ -24,7 +24,7 @@ const HEADINGS = [
 export const LineItemsPanel = ({ items }: LineItemsPanelProps) => (
   <Panel
     title={`Lines we extracted (${items.length})`}
-    description="Every figure is copied from the document. Hover a number to see the exact text it came from."
+    description="Every figure is copied from the document. Click any number to see the exact text it came from."
   >
     {items.length === 0 ? (
       <EmptyState message="No lines could be extracted from this document. See above for why." />

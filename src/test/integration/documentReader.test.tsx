@@ -60,10 +60,14 @@ describe("refusals reach the person using the page", () => {
     expect(screen.getByText('"Weight" column not extracted')).toBeTruthy();
   });
 
-  it("shows a clean document as clean, and the source of every number on hover", async () => {
+  it("shows a clean document as clean, and the source of a number when it's clicked", async () => {
     await showSample("KBS-10234.pdf");
-    expect(screen.getByText("✓ Matches the lines below")).toBeTruthy();
-    expect(screen.getByTitle('Page 1: "$1,195.20"')).toBeTruthy();
+    expect(screen.getByText("Matches the lines below")).toBeTruthy();
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Line total: $1,195.20. Show source" })));
+    const popover = screen.getByRole("dialog");
+    expect(within(popover).getByText("Line total · page 1")).toBeTruthy();
+    expect(within(popover).getByText("$1,195.20")).toBeTruthy();
+    expect(within(popover).getByText("1 10mm GIB Standard board 2400x1200 48 sheet $24.90 $1,195.20")).toBeTruthy();
     expect(screen.getByText("What we didn't extract, and why (0)")).toBeTruthy();
     expect(screen.getByText(/Nothing was refused/)).toBeTruthy();
   });

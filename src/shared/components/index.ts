@@ -8,5 +8,8 @@ export type { PageHeaderProps } from "./PageHeader";
 export { PageHeader } from "./PageHeader";
 export type { PanelProps } from "./Panel";
 export { Panel } from "./Panel";
+export type { SourcePopoverProps } from "./SourcePopover";
+export { SourcePopover } from "./SourcePopover";
 export type { SpinnerProps } from "./Spinner";
 export { Spinner } from "./Spinner";
+export { ThemeToggle } from "./ThemeToggle";

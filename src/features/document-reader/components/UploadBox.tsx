@@ -1,5 +1,6 @@
 "use client";
 
+import { FileUp } from "lucide-react";
 import { useState } from "react";
 import { MAX_FILE_BYTES } from "../../../config";
 import { cn } from "../../../lib/utils";
@@ -47,7 +48,10 @@ export const UploadBox = ({ onFile, disabled }: UploadBoxProps) => {
           event.target.value = "";
         }}
       />
-      <span className="rounded-(--radius) bg-primary px-3.5 py-2 font-medium text-on-accent">Choose a PDF</span>
+      <span className="inline-flex items-center gap-2 rounded-(--radius) bg-primary px-3.5 py-2 font-medium text-on-accent">
+        <FileUp size={16} aria-hidden="true" />
+        Choose a PDF
+      </span>
       <span className="text-sm text-muted">
         or drop it here. Invoices, packing lists and delivery dockets, up to {MAX_FILE_BYTES / 1024 / 1024} MB.
       </span>

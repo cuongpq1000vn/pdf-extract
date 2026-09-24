@@ -1,10 +1,21 @@
 // Sends a file to the extractor and turns every outcome into something the
 // page can show. There is deliberately no "something went wrong" branch.
 
-import { EXTRACT_ENDPOINT } from "../../config";
+import { EXTRACT_ENDPOINT, MAX_FILE_BYTES } from "../../config";
 import type { ExtractionResult, FileError, UploadOutcome } from "./types";
 
 export const uploadPdf = async (file: File, signal?: AbortSignal): Promise<UploadOutcome> => {
+  // Checked here as well as on the server: Vercel rejects big uploads with its
+  // own non-JSON 413 before our API runs, so the server's message never arrives.
+  if (file.size > MAX_FILE_BYTES) {
+    return {
+      kind: "error",
+      code: "FILE_TOO_LARGE",
+      title: "This file is too large",
+      message: `The file is ${(file.size / 1024 / 1024).toFixed(1)} MB. The limit is ${MAX_FILE_BYTES / 1024 / 1024} MB.`,
+    };
+  }
+
   const body = new FormData();
   body.append("file", file);
 

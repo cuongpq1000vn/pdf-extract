@@ -42,6 +42,19 @@ describe("uploadPdf", () => {
     expect(await uploadPdf(file)).toMatchObject({ title: expect.stringContaining("don't recognise") });
   });
 
+  it("refuses an oversized file before uploading it", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const big = new File([new Uint8Array(6 * 1024 * 1024)], "big.pdf");
+    expect(await uploadPdf(big)).toEqual({
+      kind: "error",
+      code: "FILE_TOO_LARGE",
+      title: "This file is too large",
+      message: "The file is 6.0 MB. The limit is 4 MB.",
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it("reports a network failure with its cause, even a non-Error one", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw "offline"; }));
     expect(await uploadPdf(file)).toMatchObject({ message: expect.stringContaining("offline") });
